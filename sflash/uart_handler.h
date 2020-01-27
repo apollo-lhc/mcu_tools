@@ -29,6 +29,9 @@ int32_t OpenUART(char *pcComPort, uint32_t ui32BaudRate);
 int32_t UARTSendData(uint8_t const *pui8Data, uint8_t ui8Size);
 int32_t UARTReceiveData(uint8_t *pui8Data, uint8_t ui8Size);
 
+int start_bootloader();
+
+
 #endif // ifndef __UART_HANDLER_H__
 
 

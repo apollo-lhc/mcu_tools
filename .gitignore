@@ -1,3 +1,9 @@
+
+# backup files
+*~
+\#*\#
+
+
 # Prerequisites
 *.d
 
@@ -51,3 +57,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 sflash/.settings/language.settings.xml
+sflash/.cproject
+sflash/.project

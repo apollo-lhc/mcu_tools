@@ -308,6 +308,8 @@
 //! @{
 //
 //*****************************************************************************
+#include <assert.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <fcntl.h>
@@ -688,7 +690,7 @@ main(int32_t argc, char **argv)
 
   setbuf(stdout, 0);
 
-  fprintf(stdout, "Starting %s\n", __func__);
+  fprintf(stdout, "Starting %s\n", argv[0]);
 
   //
   // Get any arguments that were passed in.
@@ -763,12 +765,17 @@ main(int32_t argc, char **argv)
 
   printf("Starting programming:\n");
 
+  // start the boot loader on the MCU
+  if ( start_bootloader() ) {
+  }
+
   //
   // If both a boot loader and an application were specified then update both
   // the boot loader and the application.
   //
   if(g_pcBootLoadName != 0)
   {
+    assert(1==0);
     if(UpdateFlash(hFile, hFileBoot, g_ui32DownloadAddress) < 0)
     {
       return(-1);

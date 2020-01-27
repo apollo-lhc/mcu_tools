@@ -29,9 +29,12 @@
 #include <fcntl.h>
 #include <windows.h>
 #else
+#include <stdio.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/errno.h>
 #endif
 
 //*****************************************************************************
@@ -293,6 +296,28 @@ UARTReceiveData(uint8_t *pui8Data, uint8_t ui8Size)
     return(0);
 #endif
 }
+
+int start_bootloader()
+{
+  char *cmd = "bootloader\r\n";
+  write(g_i32ComPort, cmd, strlen(cmd));
+  // read back the message from the boot loader
+  usleep(1000);
+  char buffer[100]; buffer[100-1] = '\0';
+  int rdlen = read(g_i32ComPort, buffer, sizeof(buffer)-1);
+  if ( rdlen > 0 ) 
+    printf("starting boot loader: %s\n", buffer);
+  else if (rdlen < 0 ) {
+    printf("Error from read: %d: %s\n", rdlen, strerror(errno));
+    return -1;
+  }
+  else {
+    printf("Couldn't start boot loader, timeout.\n");
+    return -2;
+  }
+  return 0;
+}
+
 
 //*****************************************************************************
 //
