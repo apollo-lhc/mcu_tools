@@ -371,8 +371,8 @@ static char const pcUsageString[] =
     "-s [data size]:\n"
     "    Specifies the number of data bytes to be sent in each data packet.  Must\n"
     "    be a multiple of 4 between 4 and 252 (inclusive).\n\n"
-    "    Example: Download test.bin using COM 1 to address 0x800 and run at 0x820\n"
-    "        sflash test.bin -p 0x800 -r 0x820 -c 1\n"
+    "    Example:\n"
+    "        sflash test.bin -p 0x4000 -r 0x4003 -d -s 242 -c /dev/ttyUSB1 -b 115200\n"
 };
 
 //*****************************************************************************
@@ -418,7 +418,7 @@ static char g_pcCOMName[32] =
 #ifdef __WIN32
     "\\\\.\\COM1"
 #else
-    "/dev/ttyS0"
+    "/dev/ttyUSB0"
 #endif
 };
 
@@ -564,6 +564,11 @@ parseArgs(int32_t argc, char **argv)
         case 'p':
         {
           g_ui32DownloadAddress = strtoul(argv[i], 0, 0);
+	  if ( g_ui32DownloadAddress != 0x4000 ) {
+	    printf("Invalid download address 0x%08x: must be 0x4000\n",
+		   g_ui32DownloadAddress);
+	    return -2;
+	  }
           break;
         }
         case 'r':
@@ -580,11 +585,11 @@ parseArgs(int32_t argc, char **argv)
 #endif
           break;
         }
-        case 'l':
-        {
-          g_pcBootLoadName = argv[i];
-          break;
-        }
+        /* case 'l': */
+        /* { */
+        /*   g_pcBootLoadName = argv[i]; */
+        /*   break; */
+        /* } */
         case 'b':
         {
           g_pui32BaudRate = strtoul(argv[i], 0, 0);
@@ -678,8 +683,8 @@ main(int32_t argc, char **argv)
   g_pcFilename = 0;
   g_pcBootLoadName = 0;
   g_pui32BaudRate = 115200;
-  g_ui32DataSize = 8;
-  g_i32DisableAutoBaud = 0;
+  g_ui32DataSize = 240;
+  g_i32DisableAutoBaud = 1;
 
   setbuf(stdout, 0);
 
@@ -783,7 +788,7 @@ main(int32_t argc, char **argv)
   //
   if(g_ui32StartAddress != 0xffffffff)
   {
-    printf("Sending RUN command to start at address 0x%08lx\n", g_ui32StartAddress);
+    printf("Sending RUN command to start at address 0x%08x\n", g_ui32StartAddress);
     //
     // Send the run command but just send the packet, there will likely
     // be no boot loader to answer after this command completes.
@@ -953,7 +958,7 @@ UpdateFlash(FILE *hFile, FILE *hBootFile, uint32_t ui32Address)
 
     g_pui8Buffer[0] = COMMAND_SEND_DATA;
 
-    printf("%08ld", ui32TransferLength);
+    printf("%08d", ui32TransferLength);
 
     //
     // Send out 8 bytes at a time to throttle download rate and avoid
