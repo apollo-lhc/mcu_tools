@@ -680,7 +680,7 @@ main(int32_t argc, char **argv)
   FILE *hFile;
   FILE *hFileBoot;
 
-  g_ui32DownloadAddress = 0;
+  g_ui32DownloadAddress = 0x4000;
   g_ui32StartAddress = 0xffffffff;
   g_pcFilename = 0;
   g_pcBootLoadName = 0;
@@ -691,6 +691,7 @@ main(int32_t argc, char **argv)
   setbuf(stdout, 0);
 
   fprintf(stdout, "Starting %s\n", argv[0]);
+  fprintf(stdout, "This is a version of TI sflash modified for the Apollo-LHC\n");
 
   //
   // Get any arguments that were passed in.
@@ -712,15 +713,8 @@ main(int32_t argc, char **argv)
   //
   if(g_pcBootLoadName)
   {
-    //
-    // Open the boot loader file to download.
-    //
-    hFileBoot = fopen(g_pcBootLoadName, "rb");
-    if(hFileBoot == 0)
-    {
-      printf("Failed to open file: %s\n", g_pcBootLoadName);
-      return(-1);
-    }
+    printf("Loading boot loader not supported.\n");
+    return(-1);
   }
 
   //
@@ -732,6 +726,12 @@ main(int32_t argc, char **argv)
     printf("Failed to open file: %s\n", g_pcFilename);
     return(-1);
   }
+  // 
+  // Check that the file download address is correct
+  if ( g_ui32DownloadAddress != 0x4000 ) {
+     printf("Please check download address again\n");
+     return(-1);
+  } 
 
   if(OpenUART(g_pcCOMName, g_pui32BaudRate))
   {
@@ -763,7 +763,8 @@ main(int32_t argc, char **argv)
   printf("       COM Port: %s\n", g_pcCOMName);
   printf("      Baud Rate: %d\n", g_pui32BaudRate);
 
-  printf("Starting programming:\n");
+  printf("Starting programming in 5 seconds ....\n");
+  sleep(5);
 
   // start the boot loader on the MCU
   if ( start_bootloader() ) {

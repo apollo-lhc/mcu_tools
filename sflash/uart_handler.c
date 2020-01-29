@@ -303,7 +303,8 @@ int start_bootloader()
   write(g_i32ComPort, cmd, strlen(cmd));
   // read back the message from the boot loader
   usleep(1000);
-  char buffer[100]; buffer[100-1] = '\0';
+#define BUFFER_LENGTH 256
+  char buffer[BUFFER_LENGTH]; buffer[BUFFER_LENGTH-1] = '\0';
   int rdlen = read(g_i32ComPort, buffer, sizeof(buffer)-1);
   if ( rdlen > 0 ) 
     printf("starting boot loader: %s\n", buffer);
