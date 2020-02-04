@@ -302,7 +302,7 @@ int start_bootloader()
   char *cmd = "bootloader\r\n";
   write(g_i32ComPort, cmd, strlen(cmd));
   // read back the message from the boot loader
-  usleep(1000);
+  sleep(2); 
 #define BUFFER_LENGTH 256
   char buffer[BUFFER_LENGTH]; buffer[BUFFER_LENGTH-1] = '\0';
   int rdlen = read(g_i32ComPort, buffer, sizeof(buffer)-1);
