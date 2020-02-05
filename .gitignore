@@ -59,3 +59,4 @@ dkms.conf
 sflash/.settings/language.settings.xml
 sflash/.cproject
 sflash/.project
+.DS_Store
