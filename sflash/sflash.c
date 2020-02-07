@@ -315,6 +315,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <memory.h>
 #include "uart_handler.h"
 #include "packet_handler.h"
