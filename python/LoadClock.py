@@ -9,15 +9,13 @@ import os
 dir = os.path.dirname(os.path.abspath(__file__))
 
 parser = optparse.OptionParser()
-parser.add_option('--RegisterList', dest="Reg_List", default=dir+'/Si5439_RevD_reg_In3_312p195122MHz_nozeros.txt',help='Base path of Register List.')
-parser.add_option('--ZNYQ', action="store_true", dest="onZYNQ", default=False,help='Working from a ZYNQ.')
+parser.add_option('--RegisterList', dest="Reg_List", default=dir+'/../data/Si5439_RevD_reg_In3_312p195122MHz_nozeros.txt',help='Base path of Register List.')
+parser.add_option('--tty', dest="tty_device", default='ttyUSB0', help='Specify tty device. ttyUL1 for ZYNQ. ttyUSB0 or ttyUSB1 for CPU.')
 parser.add_option('--debug', action="store_true", dest="debug", default=False,help='Print debug statementss')
 parser.add_option('--quiet', action="store_true", dest="Quiet", default=False,help='Do not print out get_command output')
 o, a = parser.parse_args()
 
-serPort = "/dev/ttyUSB0"
-if o.onZYNQ:
-    serPort = "/dev/ttyUL1"
+serPort = "/dev/"+o.tty_device
 
 ser = serial.Serial(serPort,baudrate=115200,timeout=1)  # open serial port
 # ser = serial.Serial(
