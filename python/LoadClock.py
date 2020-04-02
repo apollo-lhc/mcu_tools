@@ -37,7 +37,7 @@ def get_command(command):
     done = False
     while ( not done ):
         line  = ser.readline().rstrip()
-        if ( len(line) and chr(line[0]) == '%' ) :
+        if ( len(line) and line[0] == '%' ) :
             done = True
         else :
             lines.append(line.decode())
