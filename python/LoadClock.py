@@ -31,7 +31,7 @@ def get_command(command):
     lines = []
     # just ensure command has newline 
     command = command.rstrip()
-    command = command + '\n'
+    command = command + '\r\n'
     print(command)
     ser.write(command.encode()) # write one char from an int
     done = False
@@ -122,5 +122,5 @@ def LoadClock(PreList,RegList,PostList,Read):
 
 LoadClock(PreambleList, RegisterList, PostambleList, not o.Quiet)
 
-if ser.is_open:
-    ser.close()
+#if ser.is_open:
+ser.close()
