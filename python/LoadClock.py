@@ -120,7 +120,7 @@ def LoadClock(PreList,RegList,PostList,Read):
     time.sleep(1)
     write_reg(PostList,Read)
 
-#LoadClock(PreambleList, RegisterList, PostambleList, not o.Quiet)
+LoadClock(PreambleList, RegisterList, PostambleList, not o.Quiet)
 
 #if ser.is_open:
 ser.close()
