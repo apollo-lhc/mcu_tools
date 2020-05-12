@@ -40,7 +40,7 @@ AR:=${TOOLS_PREFIX}ar
 #
 # Set CFLAGS and LDFLAGS based on the operating system.
 #
-CFLAGS:=-MD
+CFLAGS:=-MD -std=c11
 os:=${shell uname -s}
 ifeq (${TOOLS_PREFIX}, )
 #CFLAGS:=${CFLAGS} -mno-cygwin

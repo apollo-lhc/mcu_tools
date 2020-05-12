@@ -763,13 +763,21 @@ main(int32_t argc, char **argv)
   printf("Program Address: 0x%x\n", g_ui32DownloadAddress);
   printf("       COM Port: %s\n", g_pcCOMName);
   printf("      Baud Rate: %d\n", g_pui32BaudRate);
+  printf("    Packet Size: %d\n", g_ui32DataSize);
 
   printf("Starting programming in 5 seconds ....\n");
   sleep(5);
 
   // start the boot loader on the MCU
-  if ( start_bootloader() ) {
+  int ret;
+  if ( ret = start_bootloader() ) {
+    printf("start_bootloader returned error %d\n", ret);
+    return ret;
   }
+  else {
+    printf("bootloader started successfully\n");
+  }
+  
 
   //
   // If both a boot loader and an application were specified then update both
@@ -939,7 +947,7 @@ UpdateFlash(FILE *hFile, FILE *hBootFile, uint32_t ui32Address)
       return(-1);
     }
   }
-
+  printf("sending download command\n");
   //
   // Build up the download command and send it to the board.
   //

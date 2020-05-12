@@ -37,6 +37,8 @@
 #include <sys/errno.h>
 #endif
 
+#define BUFFER_LENGTH 1024
+
 //*****************************************************************************
 //
 //! \addtogroup uart_handler UART Handler API
@@ -299,24 +301,28 @@ UARTReceiveData(uint8_t *pui8Data, uint8_t ui8Size)
 
 int start_bootloader()
 {
-  char *cmd = "bootloader\r\n";
+  char *cmd = "\r\nbootloader\r\n";
   write(g_i32ComPort, cmd, strlen(cmd));
   // read back the message from the boot loader
   sleep(2); 
-#define BUFFER_LENGTH 256
-  char buffer[BUFFER_LENGTH]; buffer[BUFFER_LENGTH-1] = '\0';
+  char buffer[BUFFER_LENGTH]; 
+  memset(buffer, 0, BUFFER_LENGTH);
+  buffer[BUFFER_LENGTH-1] = '\0';
   int rdlen = read(g_i32ComPort, buffer, sizeof(buffer)-1);
-  if ( rdlen > 0 ) 
+  int retvalue = -1;
+  if ( rdlen > 0 ) {
     printf("starting boot loader: %s\n", buffer);
+    retvalue = 0; // success 
+  }
   else if (rdlen < 0 ) {
     printf("Error from read: %d: %s\n", rdlen, strerror(errno));
-    return -1;
+    retvalue= -1;
   }
   else {
     printf("Couldn't start boot loader, timeout.\n");
-    return -2;
+    retvalue= -2;
   }
-  return 0;
+  return retvalue;
 }
 
 
