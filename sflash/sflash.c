@@ -336,6 +336,8 @@ uint32_t g_pui32BaudRate;
 uint32_t g_ui32DataSize;
 int32_t g_i32DisableAutoBaud;
 
+bool g_SkipCallToBL = false;
+
 //*****************************************************************************
 //
 //! This string will be printed if any errors are present in the command line
@@ -370,6 +372,8 @@ static char const pcUsageString[] =
     "    before downloading the application specified by the filename parameter.\n"
     "-b [baud rate]:\n"
     "    Specifies the baud rate in decimal.\n"
+    "-x :\n"
+    "    Disable call to boot loader\n"
     "-d  Disable Auto-Baud support\n"
     "-s [data size]:\n"
     "    Specifies the number of data bytes to be sent in each data packet.  Must\n"
@@ -643,6 +647,12 @@ parseArgs(int32_t argc, char **argv)
         return(-2);
         break;
       }
+      case 'x':
+      {
+        g_SkipCallToBL = true; 
+        printf("\tSkipping bootloader invocation\n");
+        break;
+      }
       case 'd':
       {
         g_i32DisableAutoBaud = 1;
@@ -768,14 +778,20 @@ main(int32_t argc, char **argv)
   printf("Starting programming in 5 seconds ....\n");
   sleep(5);
 
-  // start the boot loader on the MCU
-  int ret;
-  if ( ret = start_bootloader() ) {
-    printf("start_bootloader returned error %d\n", ret);
-    return ret;
-  }
+  // skip call to BL if needed
+  if ( ! g_SkipCallToBL ) {
+    // start the boot loader on the MCU
+    int ret;
+    if ( ret = start_bootloader() ) {
+      printf("start_bootloader returned error %d\n", ret);
+      return ret;
+    }
+    else {
+      printf("bootloader started successfully\n");
+    }
+  } 
   else {
-    printf("bootloader started successfully\n");
+    printf("Skipping invocation of bootloader\n");
   }
   
 

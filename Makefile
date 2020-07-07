@@ -1,4 +1,10 @@
 
+# GIT 
+GIT_VERSION="$(shell git describe --abbrev=4 --dirty --always --tags)"
+#
+CFLAGS+= -DFIRMWARE_VERSION=\"$(GIT_VERSION)\"
+#
+#
 
 
 DIRS=sflash
