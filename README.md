@@ -33,4 +33,4 @@ failed -> err : 33%
 failed -> err : 400%
 ...
 ```
-showing the Kintex's output current(I) of a random board (second last two columns) that is different from the one on CM of Apollo09 (first two columns) by 33% and 400% columnwise. Note that the current logging only show the outputs that are different from Apollo09 more than the threshold (x%), and we are currentlly ignore the IOUT outputs. 
+showing the Kintex's output current(I) of a random board (second last two columns) that is different from the one on CM of Apollo09 (first two columns) by 33% (one supply) and 400% (another supply) columnwise. Note that the current logging only shows the outputs that are different from Apollo09 more than the threshold (x%), and we are currentlly ignore the IOUT outputs. 
