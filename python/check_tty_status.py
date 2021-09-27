@@ -58,7 +58,7 @@ for line in Lines:
              output_file.write(error_name+"\n")
              if 'VALUE' in apollo09_list :
                  output_file.write(Lines1[n-2])
-             output_file.write(line.replace(str(n),''))
+             output_file.write(line[6:])
              output_file.writelines("failed -> err : %s\n" % item for item in ls_err)
 
 diff_file.close()
