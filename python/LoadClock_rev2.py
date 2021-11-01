@@ -13,6 +13,7 @@ parser.add_option('--RegisterList', dest="Reg_List", default=dir+'/../data/Si543
 parser.add_option('--tty', dest="tty_device", default='ttyUSB0', help='Specify tty device. ttyUL1 for ZYNQ. ttyUSB0 or ttyUSB1 for CPU.')
 parser.add_option('--debug', action="store_true", dest="Debug", default=False,help='Print debug statementss')
 parser.add_option('--quiet', action="store_true", dest="Quiet", default=False,help='Do not print out get_command output')
+parser.add_option('--alpha', action="store_true", dest="Alpha", default=False,help='Enable registers for FF alpha-2 parts')
 o, a = parser.parse_args()
 
 serPort = "/dev/"+o.tty_device
@@ -87,6 +88,15 @@ print(get_command("i2cwr 2 0x20 0x03 1 00"))
 #print(get_command("i2cwr 0x77 0x01 1 0"))
 #print(get_command("i2cwr 0x77 0x11 1 0"))
 
+if o.Alpha:
+    #enable 10011111 = 9f
+    #enable 10000000 = 80
+    print(get_command("i2cw 4 0x70 1 0x9f"))
+#    print(get_command("i2cw 4 0x71 1 0x5f")
+    print(get_command("i2cw 4 0x71 1 0x58"))
+    print(get_command("i2cwr 4 0x21 0x07 1 0xf0"))
+    print(get_command("i2cwr 4 0x21 0x03 1 0x48"))
+    print(get_command("i2cwr 4 0x21 0x03 1 0x49"))
 
 PreambleList=[("0x0B24","0xC0"),
               ("0x0B25","0x00"),
