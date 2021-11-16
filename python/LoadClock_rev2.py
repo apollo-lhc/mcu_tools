@@ -69,7 +69,6 @@ def write_reg(ListOfRegs,Read):
         get_command("i2cwr 2 0x77 0x01 1 0")
         
 print(get_command("help"))
-#print(get_command("i2c_base 2"))
 #enable 0x77 and 0x20, 0x21 via 0x70
 print(get_command("i2cw 2 0x70 1 0xc1"))
 #Ping 0x20 and 0x77 to make sure they are indeed enabled
@@ -91,12 +90,11 @@ print(get_command("i2cwr 2 0x20 0x03 1 00"))
 if o.Alpha:
     #enable 10011111 = 9f
     #enable 10000000 = 80
-    print(get_command("i2cw 4 0x70 1 0x9f"))
-#    print(get_command("i2cw 4 0x71 1 0x5f")
-    print(get_command("i2cw 4 0x71 1 0x58"))
+    print(get_command("i2cw 4 0x71 1 0x40"))
     print(get_command("i2cwr 4 0x21 0x07 1 0xf0"))
-    print(get_command("i2cwr 4 0x21 0x03 1 0x48"))
-    print(get_command("i2cwr 4 0x21 0x03 1 0x49"))
+    print(get_command("i2cwr 4 0x21 0x03 1 0x7c"))
+    print(get_command("i2cwr 4 0x21 0x03 1 0x7d"))
+    print(get_command("i2cw 4 0x71 1 0x00"))
 
 PreambleList=[("0x0B24","0xC0"),
               ("0x0B25","0x00"),
@@ -133,6 +131,7 @@ def LoadClock(PreList,RegList,PostList,Read):
     write_reg(PostList,Read)
 
 LoadClock(PreambleList, RegisterList, PostambleList, not o.Quiet)
+print(get_command("i2cw 2 0x70 1 0x00"))
 
 #if ser.is_open:
 ser.close()
