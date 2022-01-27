@@ -57,5 +57,5 @@ ssh -T $_remote "bash -s ${apxx} ${c2c_link} ${c2c_node} ${binx} ${biny} ${max_p
         python /home/cms/peace/ApolloTool/plugins/ApolloSM_plugin/python/eyescan.py es_40_40_6_${link}_apollo${xx}_${time}.txt
 EOL
 
-rsync -avzhe ssh $_remote:peace/ApolloTool/*.png /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/ 
-rsync -avzhe ssh $_remote:peace/ApolloTool/*.log /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/
+rsync -avzhe ssh $_remote:peace/ApolloTool/es_40_40_6_${link}_apollo${xx}_${time}.png /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/ 
+rsync -avzhe ssh $_remote:peace/ApolloTool/es_40_40_6_${link}_apollo${xx}_${time}.log /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/
