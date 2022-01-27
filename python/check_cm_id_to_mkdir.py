@@ -13,8 +13,8 @@ Lines = fname.readlines()
 
 ID = Lines[1][3:-1]
 CMXX = int(Lines[2][14:])
-print(ID)
-print(CMXX)
+print("ID: "+str(ID))
+print("CM board number: "+str(CMXX))
  
 if int(ID)==0:
      ID = input("Please enter a new board ID: ")
