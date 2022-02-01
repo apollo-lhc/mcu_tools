@@ -53,9 +53,9 @@ ssh -T $_remote "bash -s ${apxx} ${c2c_link} ${c2c_node} ${binx} ${biny} ${max_p
         time=$7
         cd peace/ApolloTool
         export BUTOOL_AUTOLOAD_LIBRARY_LIST=""
-        ./c2c_single_eyescan_script ${xx} ${link} ${node} ${binx} ${biny} ${max_prescale} ${time} &> es_40_40_6_${link}_apollo${xx}_${time}.log
-        python /home/cms/peace/ApolloTool/plugins/ApolloSM_plugin/python/eyescan.py es_40_40_6_${link}_apollo${xx}_${time}.txt
+        ./c2c_single_eyescan_script ${xx} ${link} ${node} ${binx} ${biny} ${max_prescale} ${time} &> es_${binx}_${biny}_${max_prescale}_${link}_apollo${xx}_${time}.log
+        python /home/cms/peace/ApolloTool/plugins/ApolloSM_plugin/python/eyescan.py es_${binx}_${biny}_${max_prescale}_${link}_apollo${xx}_${time}.txt
 EOL
 
-rsync -avzhe ssh $_remote:peace/ApolloTool/es_40_40_6_${link}_apollo${xx}_${time}.png /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/ 
-rsync -avzhe ssh $_remote:peace/ApolloTool/es_40_40_6_${link}_apollo${xx}_${time}.log /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/
+rsync -avzhe ssh $_remote:peace/ApolloTool/es_${binx}_${biny}_${max_prescale}_${c2c_link}_apollo${apxx}_${timestamp}.png /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/ 
+rsync -avzhe ssh $_remote:peace/ApolloTool/es_${binx}_${biny}_${max_prescale}_${c2c_link}_apollo${apxx}_${timestamp}.log /nfs/cms/hw/apollo/CM${cmxx}/${weekly}/

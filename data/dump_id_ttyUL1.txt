@@ -1,5 +1,0 @@
-id
-ID:00030000
-Board number: 3
-Revision: 0
-Firefly config: 19e07c0
