@@ -15,7 +15,7 @@ time = args.timestamp
 
 minicom_commands = ['id','ff', 'adc','ff_status','psmon 1','psmon 2','psmon 3','psmon 4', 'psmon 5', 'psmon 6', 'errorlog 64', 'uptime', 'task info']
 dump_text = open("../data/dump_text_"+ttydevice+"_apollo"+str(xx).zfill(2)+"_"+time+".txt", "w")
-print(dump_text)
+#print(dump_text)
 for i in range(len(minicom_commands)):
     once = apollo.get_command(minicom_commands[i],ttydevice)
     for j in range(len(once)):
