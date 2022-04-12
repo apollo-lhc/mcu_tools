@@ -38,10 +38,16 @@ def get_command(command):
     done = False
     while ( not done ):
         line  = ser.readline().rstrip()
-        if ( len(line) and chr(line[0]) == '%' ) :
-            done = True
+        if o.tty_device == "ttyUL1":
+            if ( len(line) and line[0] == '%' ) :
+                done = True
+            else :
+                lines.append(line.decode())
         else :
-            lines.append(line.decode())
+            if ( len(line) and chr(line[0]) == '%' ) :
+                done = True 
+            else :
+                lines.append(line.decode())          
     return lines
 
 #write to ClockSynthesizer at 0x77
@@ -52,48 +58,64 @@ def write_reg(ListOfRegs,Read):
         ChangePage = True if int(register[0][2:4],16)!=HighByte else False
         HighByte = int(register[0][2:4],16)
         if ChangePage:
-            command = "i2cwr 2 0x77 0x01 1 "+register[0][0:4]+""
+            command = "i2cwr 2 0x77 1 0x01 1 "+register[0][0:4]+""
             if Read:
                 print(get_command(command))
             else:
                 get_command(command)
-        command = "i2cwr 2 0x77 0x"+register[0][4:6]+" 1 "+register[1]+""
+        command = "i2cwr 2 0x77 1 0x"+register[0][4:6]+" 1 "+register[1]+""
         if Read:
             print(get_command(command))
         else:
             get_command(command)
     #Set page back to 0 in the end
     if Read:
-        print(get_command("i2cwr 2 0x77 0x01 1 0"))
+        print(get_command("i2cwr 2 0x77 1 0x01 1 0"))
     else:
-        get_command("i2cwr 2 0x77 0x01 1 0")
+        get_command("i2cwr 2 0x77 1 0x01 1 0")
         
 print(get_command("help"))
 #enable 0x77 and 0x20, 0x21 via 0x70
 print(get_command("i2cw 2 0x70 1 0xc1"))
 #Ping 0x20 and 0x77 to make sure they are indeed enabled
 print(get_command("i2cr 2 0x77 1"))
-print(get_command("i2crr 2 0x20 0x06 1"))
+print(get_command("i2crr 2 0x20 1 0x06 1"))
 #Setting Control Registers on U93 (TCA9555) to have all I/O ports (P0-7 (0x02),P10-17 (0x03)) set as outputs (value 0))
-print(get_command("i2cwr 2 0x20 0x06 1 0"))
-print(get_command("i2cwr 2 0x20 0x07 1 0"))
+print(get_command("i2cwr 2 0x20 1 0x06 1 0"))
+print(get_command("i2cwr 2 0x20 1 0x07 1 0"))
 #Configuring clock muxes for xcvrs via 0x20
-print(get_command("i2cwr 2 0x20 0x02 1 20"))
-print(get_command("i2cwr 2 0x20 0x02 1 A0"))
+print(get_command("i2cwr 2 0x20 1 0x02 1 20"))
+print(get_command("i2cwr 2 0x20 1 0x02 1 A0"))
 #Configuring Clock Synthesizer chip (enable and reset) via 0x20
-print(get_command("i2cwr 2 0x20 0x03 1 00"))
+print(get_command("i2cwr 2 0x20 1 0x03 1 00"))
 #print(get_command("i2cwr 2 0x20 0x03 1 01"))
 #Clear sticky flags of clock synth status monitor (raised high after reset)
 #print(get_command("i2cwr 0x77 0x01 1 0"))
 #print(get_command("i2cwr 0x77 0x11 1 0"))
 
+# print(get_command("i2cwr 2 0x20 0x06 1 0x70"))  # 01110000 [P07..P00]
+# print(get_command("i2cwr 2 0x20 0x07 1 0xc2"))  # 11000010 [P17..P10]
+# print(get_command("i2cwr 2 0x20 0x02 1 0x80"))  # 10000000 [P07..P00]
+# print(get_command("i2cwr 2 0x20 0x03 1 0x01"))  # 00000001 [P17..P10]
+# print(get_command("i2cwr 2 0x21 0x06 1 0x70"))  # 01110000 [P07..P00]
+# print(get_command("i2cwr 2 0x21 0x07 1 0x00"))  # 00000000
+# print(get_command("i2cwr 2 0x21 0x02 1 0x80"))  # 10000000
+# print(get_command("i2cwr 2 0x21 0x03 1 0x03"))  # 00000011
+
+# print(get_command("i2cw 4 0x70 1 0x80"))
+# print(get_command("i2cwr 4 0x20 0x06 1 0xff"))  # 11111111 [P07..P00]
+# print(get_command("i2cwr 4 0x20 0x07 1 0xff"))  
+# print(get_command("i2cw 4 0x71 1 0x40"))
+# print(get_command("i2cwr 4 0x21 0x06 1 0xff"))  # 11111111 [P07..P00]
+# print(get_command("i2cwr 4 0x21 0x07 1 0xf0"))
+
 if o.Alpha:
     #enable 10011111 = 9f
     #enable 10000000 = 80
     print(get_command("i2cw 4 0x71 1 0x40"))
-    print(get_command("i2cwr 4 0x21 0x07 1 0xf0"))
-    print(get_command("i2cwr 4 0x21 0x03 1 0x7c"))
-    print(get_command("i2cwr 4 0x21 0x03 1 0x7d"))
+    print(get_command("i2cwr 4 0x21 1 0x07 1 0xf0"))
+    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7c"))
+    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7d"))
     print(get_command("i2cw 4 0x71 1 0x00"))
 
 PreambleList=[("0x0B24","0xC0"),
