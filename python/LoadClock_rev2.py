@@ -5,15 +5,19 @@ import time
 import io
 import optparse
 import os
+import re
 
 dir = os.path.dirname(os.path.abspath(__file__))
 
 parser = optparse.OptionParser()
+#synth_choices = ["r0a", "r0b", "r1a", "r1b", "r1c"]
+#parser.add_argument("synth_id", type=str.lower, choices=synth_choices, help='[required] synthesizer to configure {R0A, R0B, R1A, R1B, R1C}')
 parser.add_option('--RegisterList', dest="Reg_List", default=dir+'/../data/Si5430_RevD_reg_In3_312p195122MHz_nozeros.txt',help='Base path of Register List.')
 parser.add_option('--tty', dest="tty_device", default='ttyUSB0', help='Specify tty device. ttyUL1 for ZYNQ. ttyUSB0 or ttyUSB1 for CPU.')
 parser.add_option('--debug', action="store_true", dest="Debug", default=False,help='Print debug statementss')
 parser.add_option('--quiet', action="store_true", dest="Quiet", default=False,help='Do not print out get_command output')
 parser.add_option('--alpha', action="store_true", dest="Alpha", default=False,help='Enable registers for FF alpha-2 parts')
+
 o, a = parser.parse_args()
 
 serPort = "/dev/"+o.tty_device
@@ -28,6 +32,8 @@ ser = serial.Serial(serPort,baudrate=115200,timeout=1)  # open serial port
 #    timeout=1)
 print(ser.portstr)         # check which port was really used
 
+ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+
 def get_command(command):
     lines = []
     # just ensure command has newline 
@@ -36,8 +42,11 @@ def get_command(command):
     print(command)
     ser.write(command.encode()) # write one char from an int
     done = False
+    # wait for the MCU to send back a "%" prompt
+    iters = 0
     while ( not done ):
         line  = ser.readline().rstrip()
+        line = ansi_escape.sub('', line)
         if o.tty_device == "ttyUL1":
             if ( len(line) and line[0] == '%' ) :
                 done = True
@@ -48,6 +57,10 @@ def get_command(command):
                 done = True 
             else :
                 lines.append(line.decode())          
+        iters = iters + 1
+        if ( iters > 10 ) :
+            print("stuck: ", line.decode(), iters)
+            ser.write(command.encode())
     return lines
 
 #write to ClockSynthesizer at 0x77
@@ -114,8 +127,10 @@ if o.Alpha:
     #enable 10000000 = 80
     print(get_command("i2cw 4 0x71 1 0x40"))
     print(get_command("i2cwr 4 0x21 1 0x07 1 0xf0"))
-    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7c"))
-    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7d"))
+#    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7c"))
+#    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7d"))
+    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7e"))
+    print(get_command("i2cwr 4 0x21 1 0x03 1 0x7f"))
     print(get_command("i2cw 4 0x71 1 0x00"))
 
 PreambleList=[("0x0B24","0xC0"),
