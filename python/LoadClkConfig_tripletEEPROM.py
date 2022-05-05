@@ -27,24 +27,24 @@ parser.add_argument('--alpha', action="store_true", default=False, help='Enable 
 args = parser.parse_args()
 
 if args.synth_id == "r0a" :
-    # SI5341 on mux channel 0 (mask = 0x01)
-    # even(odd) page 0x00-0x1e for address 0x00-0x7f(0x80-0xff) 
+    # SI5341A
+    # occupies 32 EEPROM pages 0x00-0x1f for one specified config file 
     eeprom_pages = [np.base_repr(i,base=16) for i in np.arange(0,32,1,dtype=np.uint8)] 
 elif args.synth_id == "r0b" :
-    # SI5395 on mux channel 1 (mask = 0x02)
-    # even(odd) page 0x20-0x3e for address 0x00-0x7f(0x80-0xff) 
+    # SI5395A
+    # occupies 32 EEPROM pages 0x20-0x3f for one specified config file
     eeprom_pages = [np.base_repr(i,base=16) for i in np.arange(32,64,1,dtype=np.uint8)] 
 elif args.synth_id == "r1a" :
-    # SI5395 on mux channel 2 (mask = 0x04)
-    # even(odd) page 0x40-0x5e for address 0x00-0x7f(0x80-0xff) 
+    # SI5341
+    # occupies 32 EEPROM pages 0x40-0x5f for one specified config file
     eeprom_pages = [np.base_repr(i,base=16) for i in np.arange(64,96,1,dtype=np.uint8)] 
 elif args.synth_id == "r1b" :
-    # SI5395 on mux channel 3 (mask = 0x08)
-    # even(odd) page 0x60-0x7e for address 0x00-0x7f(0x80-0xff) 
+    # SI5341
+    # occupies 32 EEPROM pages 0x60-0x7f for one specified config file
     eeprom_pages = [np.base_repr(i,base=16) for i in np.arange(96,128,1,dtype=np.uint8)] 
 elif args.synth_id == "r1c" :
-    # SI5395 on mux channel 4 (mask = 0x10)
-    # even(odd) page 0x80-0x9e for address 0x00-0x7f(0x80-0xff) 
+    # SI5341
+    # occupies 32 EEPROM pages 0x80-0x9f for one specified config file
     eeprom_pages = [np.base_repr(i,base=16) for i in np.arange(128,160,1,dtype=np.uint8)] 
 
 
@@ -72,17 +72,16 @@ def get_command(command):
     return lines
 
 #write to rev2 EEPROM
-i2c_port = "2"
-i2c_addr = "0x50"
+i2c_port = "2" # EEPROM I2C device #
+i2c_addr = "0x50" # EEPROM I2C address
 #When 'noisy' print out returned data of get_command
 def write_reg(ListOfRegs,Page_i,Noisy):
-    # HighByte = -1
-    # Page_i controls the start page of preamble/registers/postamble
+    # Page_i initializes the start page of preamble/register/postamble list
     Page = Page_i
     counter = 0
     for register in ListOfRegs:
          
-        if ( 0 < counter < 126):
+        if ( 0 < counter < 126): # the triplet version is assigned to have a maximum of 126 data or addresses per EEPROM page
             if (counter < 16):
                 command = "i2cwr "+i2c_port+" "+i2c_addr+" 2" +" 0x"+eeprom_pages[Page]+str(np.base_repr(counter,16,padding=1))+" 1 "+register+"" 
             else:
@@ -92,7 +91,7 @@ def write_reg(ListOfRegs,Page_i,Noisy):
             else:
                 get_command(command)
             counter += 1
-        #reset 
+        #reset counter and move on to the next page 
         else:
             if (counter != 0):
                 Page += 1
@@ -181,23 +180,22 @@ for i in range(len(Address_List)):
 
                  
 # send the preamble, data, and postamble to the eeprom
-def LoadClkConfigs(PreList,RegList,PostList,Read):
-    # for the preamble, send all data   
-    # preamble occupies the first even page (e.g. page. 0x00) of each clock 
+def LoadClkConfig(PreList,RegList,PostList,Read): 
+    # preamble list occupies the first page (e.g. page. 0x00 for r0a) of each clock 
     write_reg(PreList,0,Read)
     time.sleep(1) #only need 300 msec
-    # registers occupies 2-31 pages (include even and odd pages) of each clock
+    # register list occupies pages 2-31 (e.g. page 0x01-0x1e for r0a) of each clock
     write_reg(RegList,1,Read)
     time.sleep(1)
-    # for the postamble, send all data
-    # postamble occupies the last even page (e.g. page. 0x1e) of each clock
+    # postamble list occupies the last page (e.g. page. 0x1f for r0a) of each clock
     write_reg(PostList,31,Read)
-    write_counter(int(len(PreList)/3),124,1,31,Read)
-    write_counter(int(len(RegList)/3),125,2,31,Read) 
-    write_counter(int(len(PostList)/3),127,1,31,Read)
+    # the sizes of the three lists are written to the last four addresses on the last page of each clock
+    write_counter(int(len(PreList)/3),124,1,31,Read) # (e.g. write 1 byte to addr  0x1f7c for r0a) 
+    write_counter(int(len(RegList)/3),125,2,31,Read)  # (e.g. write 2 bytes to addr  0x1f7d for r0a)
+    write_counter(int(len(PostList)/3),127,1,31,Read) # (e.g. write 1 byte to addr  0x1f7f for r0a)
 
 # send data off to eeprom
-LoadClkConfigs(PreambleList, RegisterList, PostambleList, not args.quiet)
+LoadClkConfig(PreambleList, RegisterList, PostambleList, not args.quiet)
 
 # close the dump file
 dump_file.close()
