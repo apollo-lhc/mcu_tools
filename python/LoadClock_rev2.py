@@ -87,7 +87,6 @@ def write_reg(ListOfRegs,Read):
     else:
         get_command("i2cwr 2 0x77 1 0x01 1 0")
         
-#print(get_command("help"))
 #enable 0x77 and 0x20, 0x21 via 0x70
 print(get_command("i2cw 2 0x70 1 0xc1"))
 #Ping 0x20 and 0x77 to make sure they are indeed enabled
