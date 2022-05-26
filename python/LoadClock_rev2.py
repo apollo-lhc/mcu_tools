@@ -45,18 +45,18 @@ def get_command(command):
     # wait for the MCU to send back a "%" prompt
     iters = 0
     while ( not done ):
-        line  = ser.readline().rstrip()
-        line = ansi_escape.sub('', line)
         if o.tty_device == "ttyUL1":
-            if ( len(line) and line[0] == '%' ) :
-                done = True
-            else :
-                lines.append(line.decode())
+            line  = ser.readline().rstrip()
+        else:
+            line  = ser.readline().rstrip().decode("utf-8") 
+        line = ansi_escape.sub('', line)
+        if ( len(line) and line[0] == '%' ) :
+            done = True
         else :
-            if ( len(line) and chr(line[0]) == '%' ) :
-                done = True 
-            else :
-                lines.append(line.decode())          
+            if o.tty_device == "ttyUL1":
+                lines.append(line.decode())
+            else:
+                lines.append(line)
         iters = iters + 1
         if ( iters > 10 ) :
             print("stuck: ", line.decode(), iters)
@@ -87,7 +87,6 @@ def write_reg(ListOfRegs,Read):
     else:
         get_command("i2cwr 2 0x77 1 0x01 1 0")
         
-print(get_command("help"))
 #enable 0x77 and 0x20, 0x21 via 0x70
 print(get_command("i2cw 2 0x70 1 0xc1"))
 #Ping 0x20 and 0x77 to make sure they are indeed enabled
