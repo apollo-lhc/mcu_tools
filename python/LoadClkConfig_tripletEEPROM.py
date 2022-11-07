@@ -29,23 +29,23 @@ args = parser.parse_args()
 if args.synth_id == "r0a" :
     # SI5341A
     # occupies 32 EEPROM pages 0x00-0x1f for one specified config file 
-    eeprom_pages = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1A', '1B', '1C', '1D', '1E', '1F'] #[np.base_repr(i,base=16) for i in np.arange(0,32,1,dtype=np.uint8)] 
+    eeprom_pages = [hex(i)[2:] for i in range(0,32)] 
 elif args.synth_id == "r0b" :
     # SI5395A
     # occupies 32 EEPROM pages 0x20-0x3f for one specified config file
-    eeprom_pages = ['20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2A', '2B', '2C', '2D', '2E', '2F', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A', '3B', '3C', '3D', '3E', '3F'] #[np.base_repr(i,base=16) for i in np.arange(32,64,1,dtype=np.uint8)] 
+    eeprom_pages = [hex(i)[2:] for i in range(32,64)] 
 elif args.synth_id == "r1a" :
     # SI5341
     # occupies 32 EEPROM pages 0x40-0x5f for one specified config file
-    eeprom_pages = ['40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4A', '4B', '4C', '4D', '4E', '4F', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5A', '5B', '5C', '5D', '5E', '5F'] #[np.base_repr(i,base=16) for i in np.arange(64,96,1,dtype=np.uint8)] 
+    eeprom_pages = [hex(i)[2:] for i in range(64,96)] 
 elif args.synth_id == "r1b" :
     # SI5341
     # occupies 32 EEPROM pages 0x60-0x7f for one specified config file
-    eeprom_pages = ['60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6A', '6B', '6C', '6D', '6E', '6F', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7A', '7B', '7C', '7D', '7E', '7F'] #[np.base_repr(i,base=16) for i in np.arange(96,128,1,dtype=np.uint8)] 
+    eeprom_pages = [hex(i)[2:] for i in range(96,128)] 
 elif args.synth_id == "r1c" :
     # SI5341
     # occupies 32 EEPROM pages 0x80-0x9f for one specified config file
-    eeprom_pages = ['80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8A', '8B', '8C', '8D', '8E', '8F', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9A', '9B', '9C', '9D', '9E', '9F'] # [np.base_repr(i,base=16) for i in np.arange(128,160,1,dtype=np.uint8)] 
+    eeprom_pages = [hex(i)[2:] for i in range(128,160)] 
 
 
 serPort = "/dev/"+args.tty
