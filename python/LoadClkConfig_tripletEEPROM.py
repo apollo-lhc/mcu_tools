@@ -6,6 +6,8 @@ import io
 import argparse
 import os
 import pdb
+#import numpy as np
+#import pandas as pd
 
 dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,23 +29,23 @@ args = parser.parse_args()
 if args.synth_id == "r0a" :
     # SI5341A
     # occupies 32 EEPROM pages 0x00-0x1f for one specified config file 
-    eeprom_pages = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1A', '1B', '1C', '1D', '1E', '1F'] 
+    eeprom_pages = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1A', '1B', '1C', '1D', '1E', '1F'] #[np.base_repr(i,base=16) for i in np.arange(0,32,1,dtype=np.uint8)] 
 elif args.synth_id == "r0b" :
     # SI5395A
     # occupies 32 EEPROM pages 0x20-0x3f for one specified config file
-    eeprom_pages = ['20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2A', '2B', '2C', '2D', '2E', '2F', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A', '3B', '3C', '3D', '3E', '3F'] 
+    eeprom_pages = ['20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2A', '2B', '2C', '2D', '2E', '2F', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A', '3B', '3C', '3D', '3E', '3F'] #[np.base_repr(i,base=16) for i in np.arange(32,64,1,dtype=np.uint8)] 
 elif args.synth_id == "r1a" :
     # SI5341
     # occupies 32 EEPROM pages 0x40-0x5f for one specified config file
-    eeprom_pages = ['40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4A', '4B', '4C', '4D', '4E', '4F', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5A', '5B', '5C', '5D', '5E', '5F'] 
+    eeprom_pages = ['40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4A', '4B', '4C', '4D', '4E', '4F', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5A', '5B', '5C', '5D', '5E', '5F'] #[np.base_repr(i,base=16) for i in np.arange(64,96,1,dtype=np.uint8)] 
 elif args.synth_id == "r1b" :
     # SI5341
     # occupies 32 EEPROM pages 0x60-0x7f for one specified config file
-    eeprom_pages = ['60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6A', '6B', '6C', '6D', '6E', '6F', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7A', '7B', '7C', '7D', '7E', '7F'] 
+    eeprom_pages = ['60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6A', '6B', '6C', '6D', '6E', '6F', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7A', '7B', '7C', '7D', '7E', '7F'] #[np.base_repr(i,base=16) for i in np.arange(96,128,1,dtype=np.uint8)] 
 elif args.synth_id == "r1c" :
     # SI5341
     # occupies 32 EEPROM pages 0x80-0x9f for one specified config file
-    eeprom_pages = ['80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8A', '8B', '8C', '8D', '8E', '8F', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9A', '9B', '9C', '9D', '9E', '9F'] 
+    eeprom_pages = ['80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8A', '8B', '8C', '8D', '8E', '8F', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9A', '9B', '9C', '9D', '9E', '9F'] # [np.base_repr(i,base=16) for i in np.arange(128,160,1,dtype=np.uint8)] 
 
 
 serPort = "/dev/"+args.tty
@@ -60,13 +62,19 @@ def get_command(command):
     dump_file.write(command)  
     ser.write(command.encode()) # write one char from an int
     done = False
+    iters = 0
     # wait for the MCU to send back a "%" prompt    
     while ( not done ):
         line  = ser.readline().rstrip()
-        if ( len(line) and chr(line[0]) == '%' ) :
+        if ( len(line) > 0 and ord(line[0]) == 37 ) :
             done = True
         else :
             lines.append(line.decode())
+
+        iters = iters + 1
+        if ( iters > 10 ) :
+            print("stuck: ", line.decode(), iters)
+            ser.write(command.encode())
     return lines
 
 #write to rev2 EEPROM
@@ -120,12 +128,15 @@ def write_counter(reg_counter,page_counter,nbyte,Page_i,Noisy):
         get_command(command) 
  
 # send 'help' command and print out results to show that the MCU is communicating
-print(get_command("help"))
+#print(get_command("help"))
 # check the WP pin and set it to writable
-print(get_command("gpio get ID_EEPROM_WP"))
-print(get_command("gpio set ID_EEPROM_WP 0"))
-print(get_command("gpio get ID_EEPROM_WP"))
+print(get_command("gpio get ID_EEPROM_WP")[-1])
+print(get_command("gpio set ID_EEPROM_WP 0")[-1])
+print(get_command("gpio get ID_EEPROM_WP")[-1])
 # open csv files and create/initialize variables
+#df = pd.read_csv(args.Reg_List, header=None, delimiter=',', names=['Address','Data'])
+#Address_List = df['Address'].tolist()
+#Data_List = df['Data'].tolist()
 regfile = open(args.Reg_List, 'r')
 
 PreambleList = []
