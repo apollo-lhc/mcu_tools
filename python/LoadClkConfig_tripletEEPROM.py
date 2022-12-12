@@ -133,6 +133,7 @@ def write_counter(reg_counter,page_counter,nbyte,Page_i,Noisy):
 print(get_command("gpio get ID_EEPROM_WP")[-1])
 print(get_command("gpio set ID_EEPROM_WP 0")[-1])
 print(get_command("gpio get ID_EEPROM_WP")[-1])
+print(get_command("semaphore 2 take")[-1])
 # open csv files and create/initialize variables
 #df = pd.read_csv(args.Reg_List, header=None, delimiter=',', names=['Address','Data'])
 #Address_List = df['Address'].tolist()
@@ -210,7 +211,7 @@ def LoadClkConfig(PreList,RegList,PostList,Read):
 
 # send data off to eeprom
 LoadClkConfig(PreambleList, RegisterList, PostambleList, not args.quiet)
-
+print(get_command("semaphore 2 release")[-1]) 
 # close the dump file
 dump_file.close()
 # close the tty port:
