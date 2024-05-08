@@ -64,3 +64,8 @@ sflash/.project
 # bin directory
 bin/
 sflash/sflash
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
