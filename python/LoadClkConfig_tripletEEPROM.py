@@ -50,7 +50,7 @@ elif args.synth_id == "r1c" :
 
 serPort = "/dev/"+args.tty
 
-ser = serial.Serial(serPort,baudrate=115200,timeout=1)  # open serial port
+ser = serial.Serial(serPort,baudrate=115200,timeout=0.05)  # open serial port
 print(ser.portstr)         # check which port was really used
 dump_file = open('LoadConfig_tripletEEPROM_Clk'+args.synth_id+'.txt', 'w') 
 def get_command(command):

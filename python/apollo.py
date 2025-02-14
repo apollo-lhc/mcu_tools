@@ -5,7 +5,7 @@ ansi_esc = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def get_command(command,tty):
     ttydevice = "/dev/" + tty
-    ser = serial.Serial(port=ttydevice, baudrate=115200, timeout=1) 
+    ser = serial.Serial(port=ttydevice, baudrate=115200, timeout=0.05) 
     lines = []
     # just ensure command has newline 
     command = command.rstrip()
