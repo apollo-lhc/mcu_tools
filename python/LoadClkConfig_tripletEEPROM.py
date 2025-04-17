@@ -66,7 +66,7 @@ def get_command(command):
     # wait for the MCU to send back a "%" prompt    
     while ( not done ):
         line  = ser.readline().rstrip()
-        if ( len(line) > 0 and ord(line[0]) == 37 ) :
+        if ( len(line) > 0 and line[0] == 37 ) :
             done = True
         else :
             lines.append(line.decode())
