@@ -50,32 +50,31 @@ Functions:
     disable_write_protect() -> None:
         Disables write protection on the EEPROM.
 """
-
 import time
 import argparse
-import os
 import sys
-import serial
 from pprint import pprint
+import serial
 
 ### CONSTANTS ###
 I2C_PORT = 2
 I2C_DEVICE_ADDR = 0x50
 I2C_ADDR_BYTES = 2
-I2C_DATA_BYTES = 1
+I2C_DATA_BYTES = 3 # now write triplets
 
 EEPROM_MAX_TRIPLES = 126
 EEPROM_REGL_ADDR   = 0x7D
 EEPROM_PREL_ADDR   = 0x7C
 EEOMRP_POSTL_ADDR  = 0x7F
 NPAGES_PER_CONFIG = 32
+MAX_RESENDS = 3 # give up if the MCU never returns a prompt
 
 
 # parse command line arguments
 parser = argparse.ArgumentParser()
 # allow user to specify the config file of a specific synthesizer in upper/lower/mixed case
 synth_choices = ["r0a", "r0b", "r1a", "r1b", "r1c"]
-parser.add_argument("synth_id", type=str.lower, choices=synth_choices, 
+parser.add_argument("synth_id", type=str.lower, choices=synth_choices,
                     help='[required] synthesizer to configure {R0A, R0B, R1A, R1B, R1C}')
 # the required register list filename has to be an exact match
 parser.add_argument("Reg_List",
@@ -181,36 +180,34 @@ def parse_input_file(fname: str) -> tuple:
 
 
 # a wrapper to write to the EEPROM
+# write triplet in a single I2C transaction
 def write_triplet_to_eeprom(address: int, triplet: list) -> None:
     """Write a triplet (address, data) to the EEPROM."""
-    # loop through the triplet
-    for data in triplet:
-        if args.debug:
-            print(f"Writing to address {address}: >{data}<")
-        # convert the data to an integer
-        command = (f"i2cwr {I2C_PORT} 0x{I2C_DEVICE_ADDR:02X} {I2C_ADDR_BYTES} "
-               f"0x{address:03x} {I2C_DATA_BYTES} 0x{data:02X} ")
-        address += 1
-        if not args.quiet:
-            print(f"Writing: {command}")
-        response = get_command(command)
-        if not args.quiet:
-            print(f"Response: {response}")
+    # pack the triplet into a 32 bit integer
+    data = (triplet[2] << 16) | (triplet[1] << 8) | triplet[0]
+    # generate command string
+    command = (f"i2cwr {I2C_PORT} 0x{I2C_DEVICE_ADDR:02X} {I2C_ADDR_BYTES} "
+            f"0x{address:03x} {I2C_DATA_BYTES} 0x{data:02X} ")
+    response = get_command(command)
+    if not args.quiet:
+        print(f"Response: {response[-1]}")
 
 def get_command(command: str) -> list:
     """Send a command to the serial port and read the response."""
     lines = []
     # just ensure command has newline
-    command = command.rstrip()
-    command = command + '\r\n'
+    command = command.rstrip() + '\r\n'
     # show what will be sent to the board
     dump_file.write(command)
     if args.dry_run:
         print(f"DRYRUN: {command}")
         return [command]
+    if args.debug:
+        print(f"Sending command: {command}")
     ser.write(command.encode())  # pylint: disable=possibly-used-before-assignment
     done = False
     iters = 0
+    resends = 0
     # wait for the MCU to send back a "%" prompt
     while not done:
         line  = ser.readline().rstrip()
@@ -221,8 +218,13 @@ def get_command(command: str) -> list:
 
         iters = iters + 1
         if iters > 10 :
+            if resends >= MAX_RESENDS:
+                raise RuntimeError(f"No prompt from MCU after {resends} resends "
+                                   f"of: {command.rstrip()}")
             print("stuck: ", line.decode(), iters)
             ser.write(command.encode())
+            resends += 1
+            iters = 0
     return lines
 
 # write the register list to the EEPROM
@@ -233,7 +235,7 @@ def write_register_list(register_list: list, start_page: int) -> None:
     for triplet in register_list:
         if len(triplet) != 3:
             print(f"Invalid triplet: {triplet}")
-            return
+            sys.exit(1)
         address = (page << 8) | counter
         write_triplet_to_eeprom(address, triplet)
         counter += 3 # how many triplets
@@ -246,16 +248,26 @@ def write_register_list(register_list: list, start_page: int) -> None:
 def disable_write_protect() -> None:
     """Disable write protect on the EEPROM."""
     # check the WP pin and set it to writable
-    l = []
-    l.append(get_command("gpio get ID_EEPROM_WP")[-1])
-    l.append(get_command("gpio set ID_EEPROM_WP 0")[-1])
-    l.append(get_command("gpio get ID_EEPROM_WP")[-1])
-    l.append(get_command("semaphore 2 take")[-1])
+    ll = []
+    ll.append(get_command("gpio get ID_EEPROM_WP")[-1])
+    ll.append(get_command("gpio set ID_EEPROM_WP 0")[-1])
+    ll.append(get_command("gpio get ID_EEPROM_WP")[-1])
     if not args.quiet and not args.dry_run:
-        print("GPIO WP pin status: ", l[0])
-        print("Disabling write protect: ", l[1])
-        print("GPIO WP pin status: ", l[2])
-        print("Taking semaphore: ", l[3])
+        print("GPIO WP pin status: ", ll[0])
+        print("Disabling write protect: ", ll[1])
+        print("GPIO WP pin status: ", ll[2])
+
+def enable_write_protect() -> None:
+    """Enable write protect on the EEPROM."""
+    # check the WP pin and set it to writable
+    ll = []
+    ll.append(get_command("gpio get ID_EEPROM_WP")[-1])
+    ll.append(get_command("gpio set ID_EEPROM_WP 1")[-1])
+    ll.append(get_command("gpio get ID_EEPROM_WP")[-1])
+    if not args.quiet and not args.dry_run:
+        print("GPIO WP pin status: ", ll[0])
+        print("Enabling write protect: ", ll[1])
+        print("GPIO WP pin status: ", ll[2])
 
 ####################################################################################
 # main program starts here
@@ -302,40 +314,62 @@ if args.debug:
     print("Disabling write protect...")
 disable_write_protect()
 
-# write the three lists to the EEPROM
-if args.debug:
-    print("Writing Preamble List to EEPROM...")
-write_register_list(PreambleList, eeprom_pages[0])
-time.sleep(0.4)
-if args.debug:
-    print("Writing Register List to EEPROM...")
-write_register_list(RegisterList, eeprom_pages[1])
-time.sleep(0.4)
-if args.debug:
-    print("Writing Postamble List to EEPROM...")
-write_register_list(PostambleList, eeprom_pages[-1])
-
-# write the length of the lists to the EEPROM
-if args.debug:
-    print("Writing lengths to EEPROM...")
-ADDRS = [EEPROM_PREL_ADDR, EEPROM_REGL_ADDR, EEOMRP_POSTL_ADDR]
-LENS = [len_preamble, len_register, len_postamble]
-for addr, length in zip(ADDRS, LENS):
-    postamble_page = eeprom_pages[-1]
-    addr = (postamble_page << 8) | addr
-    nbytes = (length.bit_length() + 7) // 8
-    c = f"i2cwr {I2C_PORT} 0x{I2C_DEVICE_ADDR:02x} {I2C_ADDR_BYTES} 0x{addr:02x} {nbytes} {length:x}"
+# from here on, always restore write protect and release the semaphore,
+# including on sys.exit(), exceptions and Ctrl-C
+sem_taken = False
+try:
+    # take the semaphore
+    l = get_command("semaphore 2 take")[-1]
+    sem_taken = True
     if args.debug:
-        print(f"Writing: {c}")
-    r = get_command(c)
-    if not args.quiet:
-        print(f"Response: {r}")
+        print("Taking semaphore: ", l)
 
-# release the semaphore
-if args.debug:
-    print("Releasing semaphore...")
-print(get_command("semaphore 2 release")[-1])
+    # write the three lists to the EEPROM
+    if args.debug:
+        print("Writing Preamble List to EEPROM...")
+    write_register_list(PreambleList, eeprom_pages[0])
+    time.sleep(0.4)
+    if args.debug:
+        print("Writing Register List to EEPROM...")
+    write_register_list(RegisterList, eeprom_pages[1])
+    time.sleep(0.4)
+    if args.debug:
+        print("Writing Postamble List to EEPROM...")
+    write_register_list(PostambleList, eeprom_pages[-1])
 
-# exit
-if not args.dry_run:
-    ser.close()
+    # write the length of the lists to the EEPROM
+    if args.debug:
+        print("Writing lengths to EEPROM...")
+    ADDRS = [EEPROM_PREL_ADDR, EEPROM_REGL_ADDR, EEOMRP_POSTL_ADDR]
+    LENS = [len_preamble, len_register, len_postamble]
+    # fixed widths; must match what the MCU reads (init_load_clk in cm_mcu LocalTasks.c)
+    NBYTES = [1, 2, 1]
+    for addr, length, nbytes in zip(ADDRS, LENS, NBYTES):
+        postamble_page = eeprom_pages[-1] # last page is the postamble page
+        addr = (postamble_page << 8) | addr
+        c = (f"i2cwr {I2C_PORT} 0x{I2C_DEVICE_ADDR:02x} {I2C_ADDR_BYTES} "
+            f"0x{addr:02x} {nbytes} {length:x}")
+        if args.debug:
+            print(f"Writing: {c}")
+        r = get_command(c)
+        if not args.quiet:
+            print(f"Length: {r}")
+
+finally:
+    try:
+        if args.debug:
+            print("Enable write protect...")
+        enable_write_protect()
+    except Exception as e:  # pylint: disable=broad-except
+        print(f"WARNING: failed to re-enable write protect: {e}")
+    if sem_taken:
+        try:
+            if args.debug:
+                print("Releasing semaphore...")
+            l = get_command("semaphore 2 release")
+            if not args.quiet:
+                print("Releasing semaphore: ", l[-1] if l else l)
+        except Exception as e:  # pylint: disable=broad-except
+            print(f"WARNING: failed to release semaphore 2: {e}")
+    if not args.dry_run:
+        ser.close()
