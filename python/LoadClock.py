@@ -7,9 +7,13 @@ import optparse
 import os
 
 dir = os.path.dirname(os.path.abspath(__file__))
+# data/ next to the script in a git clone, else the RPM install location
+data_dir = dir + '/../data'
+if not os.path.isdir(data_dir):
+    data_dir = '/usr/share/mcu_tools/data'
 
 parser = optparse.OptionParser()
-parser.add_option('--RegisterList', dest="Reg_List", default=dir+'/../data/Si5430_RevD_reg_In3_312p195122MHz_nozeros.txt',help='Base path of Register List.')
+parser.add_option('--RegisterList', dest="Reg_List", default=data_dir+'/Si5430_RevD_reg_In3_312p195122MHz_nozeros.txt',help='Base path of Register List.')
 parser.add_option('--tty', dest="tty_device", default='ttyUSB0', help='Specify tty device. ttyUL1 for ZYNQ. ttyUSB0 or ttyUSB1 for CPU.')
 parser.add_option('--debug', action="store_true", dest="Debug", default=False,help='Print debug statementss')
 parser.add_option('--quiet', action="store_true", dest="Quiet", default=False,help='Do not print out get_command output')

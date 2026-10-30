@@ -1,0 +1,40 @@
+name: RPM
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  rpm:
+    # native arm64 runner; Zynq target is AlmaLinux 8 aarch64
+    runs-on: ubuntu-24.04-arm
+    container: almalinux:8
+    steps:
+      - name: Install build tools
+        run: dnf -y install rpm-build gcc make
+
+      - uses: actions/checkout@v7
+
+      - name: Build RPM
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          ver="${ver//-/_}"   # '-' is not allowed in an RPM Version
+          top="$PWD/rpmbuild"
+          mkdir -p "$top/SOURCES"
+          tar --exclude=./rpmbuild --exclude=./.git \
+              --transform "s|^\./|mcu_tools-${ver}/|" \
+              -czf "$top/SOURCES/mcu_tools-${ver}.tar.gz" .
+          rpmbuild -bb rpm/mcu_tools.spec \
+              --define "_topdir $top" \
+              --define "pkg_version ${ver}" \
+              --define "dist .el8"
+          find "$top/RPMS" -name '*.rpm' -exec cp {} . \;
+          ls -l *.rpm
+
+      - name: Attach RPM to release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: '*.rpm'
